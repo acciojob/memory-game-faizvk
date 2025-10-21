@@ -1,50 +1,9 @@
-name: Memory Game Tests
+name: Acciojob Tests 
+on: 
+  push: 
+    branches: [ "main","master" ]
 
-on:
-  push:
-    branches: [ "main", "master" ]
-
-jobs:
-  run-tests:
-    runs-on: ubuntu-latest
-
-    steps:
-      # 1️⃣ Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # 2️⃣ Setup Node.js 16
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-
-      # 3️⃣ Install dependencies
-      - name: Install dependencies
-        run: npm install
-
-      # 4️⃣ Run Cypress tests
-      - name: Run Cypress Tests
-        run: npx cypress run || true
-
-      # 5️⃣ Upload Cypress Screenshots
-      - name: Upload Cypress Screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-screenshots
-          path: cypress/screenshots
-
-      # 6️⃣ Upload Cypress Videos
-      - name: Upload Cypress Videos
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-videos
-          path: cypress/videos
-
-      # 7️⃣ Run AccioJob Evaluation
-      - name: Run AccioJob Tests
-        uses: acciojob/assignment-action@main
-        with:
-          env:
-            ACCIO_ASGMNT_ACTION_TOKEN: ${{ secrets.ACCIO_ASGMNT_ACTION_TOKEN }}
-            ACCIOJOB_BACKEND_URL: https://api.acciojob.com
+ jobs:
+   calling-acciojob-main-action: 
+    uses: acciojob/acciojob-tests-action/.github/workflows/main-action.yml@main 
+     secrets: inherit
