@@ -1,10 +1,21 @@
 name: Acciojob Tests
 
 on:
- push:
+  push:
     branches: [ "main","master" ]
 
 jobs:
   calling-acciojob-main-action:
     uses: acciojob/acciojob-tests-action/.github/workflows/main-action.yml@main
     secrets: inherit
+
+  upload-cypress-screenshots:
+    needs: calling-acciojob-main-action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Upload Cypress screenshots
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
