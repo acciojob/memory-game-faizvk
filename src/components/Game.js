@@ -28,7 +28,7 @@ export default function Game() {
     [level]
   );
   const [tiles, setTiles] = useState(() => makeTiles(4));
-  const [flipped, setFlipped] = useState([]); // indexes of currently flipped (max 2)
+  const [flipped, setFlipped] = useState([]);
   const [attempts, setAttempts] = useState(0);
   const [disabled, setDisabled] = useState(false);
   const [solved, setSolved] = useState(false);
@@ -76,7 +76,6 @@ export default function Game() {
       const t1 = nextTiles[i1];
       const t2 = nextTiles[i2];
       if (t1.value === t2.value) {
-        // mark matched
         nextTiles[i1] = { ...t1, matched: true };
         nextTiles[i2] = { ...t2, matched: true };
         setTimeout(() => {
@@ -85,7 +84,6 @@ export default function Game() {
           setDisabled(false);
         }, 350);
       } else {
-        // hide after short delay
         setTimeout(() => {
           nextTiles[i1] = { ...t1, revealed: false };
           nextTiles[i2] = { ...t2, revealed: false };
@@ -97,9 +95,14 @@ export default function Game() {
     }
   };
 
+  // compute columns for layout convenience (not required by tests)
+  const columns = pairCount <= 4 ? 4 : pairCount <= 8 ? 4 : 8;
+
   return (
     <div className="game">
-      <section className="levels_container">
+      <h2>Welcome!</h2>
+
+      <section className="levels_container" aria-label="level selection">
         <div>
           <input
             id="easy"
@@ -133,13 +136,34 @@ export default function Game() {
           />
           <label htmlFor="hard">Hard</label>
         </div>
-        <div className="controls">
-          <button onClick={resetBoard}>Restart</button>
-          <div className="attempts">Attempts: {attempts}</div>
-        </div>
       </section>
 
-      <section className="cells_container" aria-live="polite">
+      <div className="controls" style={{ marginTop: 12 }}>
+        <button onClick={resetBoard}>Restart</button>
+        <div
+          className="attempts"
+          style={{ display: "inline-block", marginLeft: 12 }}
+        >
+          Attempts: {attempts}
+        </div>
+      </div>
+
+      <section
+        className="cells_container"
+        aria-live="polite"
+        data-pair-count={pairCount}
+        data-columns={columns}
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${Math.min(
+            columns,
+            Math.ceil((pairCount * 2) / (columns || 4))
+          )}, 1fr)`,
+          gap: 10,
+          marginTop: 16,
+          justifyItems: "center",
+        }}
+      >
         {tiles.map((tile, idx) => (
           <button
             key={tile.id}
@@ -149,6 +173,7 @@ export default function Game() {
             onClick={() => handleClickTile(idx)}
             disabled={tile.matched}
             data-testid={`tile-${idx}`}
+            style={{ width: 80, height: 80 }}
           >
             {tile.revealed || tile.matched ? (
               <span className="value">{tile.value}</span>
@@ -159,7 +184,7 @@ export default function Game() {
         ))}
       </section>
 
-      <div className="status">
+      <div className="status" style={{ marginTop: 12 }}>
         {solved ? (
           <div className="solved">
             <h2>All pairs matched!</h2>
