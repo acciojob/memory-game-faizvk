@@ -1,0 +1,10 @@
+body{font-family:Arial,Helvetica,sans-serif;text-align:center;background:#f2f2f2;margin:0;padding:2rem}
+h1{margin-top:0}
+.levels_container{margin-bottom:1.5rem}
+.levels_container label{margin-right:1.2rem}
+.cells_container{display:grid;gap:10px;justify-content:center;margin:0 auto 1rem}
+.cells_container.easy{grid-template-columns:repeat(4,80px)}
+.cells_container.normal{grid-template-columns:repeat(4,80px)}
+.cells_container.hard{grid-template-columns:repeat(8,80px)}
+.cell{width:80px;height:80px;background:#4CAF50;color:#fff;font-size:28px;line-height:80px;border-radius:6px;cursor:pointer;user-select:none}
+.cell.matched{background:#888;cursor:default}

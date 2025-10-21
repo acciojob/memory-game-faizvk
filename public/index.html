@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Memory Game</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Memory Matching Game</h1>
+
+    <section class="levels_container">
+      <label><input type="radio" name="level" id="easy" checked /> Easy</label>
+      <label><input type="radio" name="level" id="normal" /> Normal</label>
+      <label><input type="radio" name="level" id="hard" /> Hard</label>
+      <button id="startBtn">Start Game</button>
+    </section>
+
+    <section class="cells_container"></section>
+    <p>Attempts: <span id="attempts">0</span></p>
+
+    <script src="app.js"></script>
+  </body>
+</html>
