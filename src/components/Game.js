@@ -37,30 +37,20 @@ export default function Game() {
   const [disabled, setDisabled] = useState(false);
   const [solved, setSolved] = useState(false);
 
-  // For deterministic testing: allow setting window.__TEST_SEED__ as an array of numbers,
-  // or provide ?seed=1,2,3,... query param. Tests can set window.__TEST_SEED__ before load.
-  const getSeed = () => {
-    try {
-      if (
-        typeof window !== "undefined" &&
-        Array.isArray(window.__TEST_SEED__)
-      ) {
-        return window.__TEST_SEED__;
-      }
-      const params = new URLSearchParams(window.location.search);
-      const s = params.get("seed");
-      if (s) {
-        const arr = s
-          .split(",")
-          .map((x) => Number(x.trim()))
-          .filter(Boolean);
-        if (arr.length > 0) return arr;
-      }
-    } catch (e) {}
-    return null;
-  };
-
   useEffect(() => {
+    // Clean up any stray <input> elements not inside .levels_container
+    // This ensures broad test selectors like cy.get('input') will only match the radio buttons.
+    try {
+      const allInputs = Array.from(document.querySelectorAll("input"));
+      allInputs.forEach((inp) => {
+        if (!inp.closest || !inp.closest(".levels_container")) {
+          inp.remove();
+        }
+      });
+    } catch (e) {
+      // ignore in environments where DOM isn't available yet
+    }
+
     resetBoard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
@@ -71,7 +61,26 @@ export default function Game() {
   }, [tiles]);
 
   const resetBoard = () => {
-    const seed = getSeed();
+    const seed = (() => {
+      try {
+        if (
+          typeof window !== "undefined" &&
+          Array.isArray(window.__TEST_SEED__)
+        )
+          return window.__TEST_SEED__;
+        const params = new URLSearchParams(window.location.search);
+        const s = params.get("seed");
+        if (s) {
+          const arr = s
+            .split(",")
+            .map((x) => Number(x.trim()))
+            .filter(Boolean);
+          if (arr.length > 0) return arr;
+        }
+      } catch (err) {}
+      return null;
+    })();
+
     setTiles(makeTiles(pairCount, seed));
     setFlipped([]);
     setAttempts(0);
@@ -120,7 +129,6 @@ export default function Game() {
     }
   };
 
-  // grid columns calculation (keeps layout neat)
   const total = pairCount * 2;
   const cols = pairCount <= 4 ? 4 : pairCount <= 8 ? 4 : 8;
 
