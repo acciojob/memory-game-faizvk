@@ -9,15 +9,19 @@ function shuffleArray(arr) {
   return a;
 }
 
-function makeTiles(pairCount) {
-  const values = [];
-  for (let i = 1; i <= pairCount; i++) values.push(i);
-  const doubled = values.concat(values);
-  return shuffleArray(doubled).map((val, idx) => ({
-    id: `${val}-${idx}`,
-    value: val,
-    matched: false,
+function makeTiles(pairCount, seedArray) {
+  const vals = [];
+  for (let i = 1; i <= pairCount; i++) vals.push(i);
+  const doubled = vals.concat(vals);
+  const order =
+    seedArray && seedArray.length === doubled.length
+      ? seedArray
+      : shuffleArray(doubled);
+  return order.map((value, idx) => ({
+    id: `${value}-${idx}`,
+    value,
     revealed: false,
+    matched: false,
   }));
 }
 
@@ -33,21 +37,42 @@ export default function Game() {
   const [disabled, setDisabled] = useState(false);
   const [solved, setSolved] = useState(false);
 
+  // For deterministic testing: allow setting window.__TEST_SEED__ as an array of numbers,
+  // or provide ?seed=1,2,3,... query param. Tests can set window.__TEST_SEED__ before load.
+  const getSeed = () => {
+    try {
+      if (
+        typeof window !== "undefined" &&
+        Array.isArray(window.__TEST_SEED__)
+      ) {
+        return window.__TEST_SEED__;
+      }
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get("seed");
+      if (s) {
+        const arr = s
+          .split(",")
+          .map((x) => Number(x.trim()))
+          .filter(Boolean);
+        if (arr.length > 0) return arr;
+      }
+    } catch (e) {}
+    return null;
+  };
+
   useEffect(() => {
     resetBoard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
 
   useEffect(() => {
-    if (tiles.every((t) => t.matched)) {
-      setSolved(true);
-    } else {
-      setSolved(false);
-    }
+    if (tiles.every((t) => t.matched)) setSolved(true);
+    else setSolved(false);
   }, [tiles]);
 
   const resetBoard = () => {
-    setTiles(makeTiles(pairCount));
+    const seed = getSeed();
+    setTiles(makeTiles(pairCount, seed));
     setFlipped([]);
     setAttempts(0);
     setDisabled(false);
@@ -58,54 +83,56 @@ export default function Game() {
     setLevel(e.target.value);
   };
 
-  const handleClickTile = (index) => {
+  const clickTile = (index) => {
     if (disabled) return;
     const tile = tiles[index];
-    if (tile.matched || tile.revealed) return;
+    if (!tile || tile.matched || tile.revealed) return;
 
-    const nextTiles = tiles.slice();
-    nextTiles[index] = { ...tile, revealed: true };
+    const next = tiles.slice();
+    next[index] = { ...tile, revealed: true };
     const nextFlipped = [...flipped, index];
-    setTiles(nextTiles);
+    setTiles(next);
     setFlipped(nextFlipped);
 
     if (nextFlipped.length === 2) {
       setDisabled(true);
       setAttempts((a) => a + 1);
       const [i1, i2] = nextFlipped;
-      const t1 = nextTiles[i1];
-      const t2 = nextTiles[i2];
+      const t1 = next[i1];
+      const t2 = next[i2];
       if (t1.value === t2.value) {
-        nextTiles[i1] = { ...t1, matched: true };
-        nextTiles[i2] = { ...t2, matched: true };
+        next[i1] = { ...t1, matched: true };
+        next[i2] = { ...t2, matched: true };
         setTimeout(() => {
-          setTiles(nextTiles);
+          setTiles(next);
           setFlipped([]);
           setDisabled(false);
-        }, 350);
+        }, 300);
       } else {
         setTimeout(() => {
-          nextTiles[i1] = { ...t1, revealed: false };
-          nextTiles[i2] = { ...t2, revealed: false };
-          setTiles(nextTiles);
+          next[i1] = { ...t1, revealed: false };
+          next[i2] = { ...t2, revealed: false };
+          setTiles(next);
           setFlipped([]);
           setDisabled(false);
-        }, 600);
+        }, 500);
       }
     }
   };
 
-  // compute columns for layout convenience (not required by tests)
-  const columns = pairCount <= 4 ? 4 : pairCount <= 8 ? 4 : 8;
+  // grid columns calculation (keeps layout neat)
+  const total = pairCount * 2;
+  const cols = pairCount <= 4 ? 4 : pairCount <= 8 ? 4 : 8;
 
   return (
-    <div className="game">
-      <h2>Welcome!</h2>
+    <div className="memory-game">
+      <h2 className="landing-title">Welcome!</h2>
 
-      <section className="levels_container" aria-label="level selection">
-        <div>
+      <section className="levels_container" aria-label="difficulty levels">
+        <div className="level-item">
           <input
             id="easy"
+            data-test-level="level"
             type="radio"
             name="level"
             value="easy"
@@ -114,20 +141,22 @@ export default function Game() {
           />
           <label htmlFor="easy">Easy</label>
         </div>
-        <div>
+        <div className="level-item">
           <input
             id="normal"
+            data-test-level="level"
             type="radio"
             name="level"
             value="normal"
             checked={level === "normal"}
             onChange={handleLevelChange}
           />
-          <label htmlFor="normal">Normal</label>
+          <label htmlFor="normal">Medium</label>
         </div>
-        <div>
+        <div className="level-item">
           <input
             id="hard"
+            data-test-level="level"
             type="radio"
             name="level"
             value="hard"
@@ -138,47 +167,37 @@ export default function Game() {
         </div>
       </section>
 
-      <div className="controls" style={{ marginTop: 12 }}>
+      <div className="controls-row">
         <button onClick={resetBoard}>Restart</button>
-        <div
-          className="attempts"
-          style={{ display: "inline-block", marginLeft: 12 }}
-        >
-          Attempts: {attempts}
-        </div>
+        <div className="attempts">Attempts: {attempts}</div>
       </div>
 
       <section
         className="cells_container"
-        aria-live="polite"
-        data-pair-count={pairCount}
-        data-columns={columns}
+        data-columns={cols}
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${Math.min(
-            columns,
-            Math.ceil((pairCount * 2) / (columns || 4))
-          )}, 1fr)`,
+          gridTemplateColumns: `repeat(${cols}, minmax(60px, 1fr))`,
           gap: 10,
           marginTop: 16,
-          justifyItems: "center",
         }}
+        aria-live="polite"
       >
-        {tiles.map((tile, idx) => (
+        {tiles.map((t, idx) => (
           <button
-            key={tile.id}
-            className={`cell ${tile.matched ? "matched" : ""} ${
-              tile.revealed ? "revealed" : ""
+            className={`cell ${t.matched ? "matched" : ""} ${
+              t.revealed ? "revealed" : ""
             }`}
-            onClick={() => handleClickTile(idx)}
-            disabled={tile.matched}
+            key={t.id}
+            onClick={() => clickTile(idx)}
+            disabled={t.matched}
             data-testid={`tile-${idx}`}
-            style={{ width: 80, height: 80 }}
+            style={{ height: 80 }}
           >
-            {tile.revealed || tile.matched ? (
-              <span className="value">{tile.value}</span>
+            {t.revealed || t.matched ? (
+              <span className="cell-value">{t.value}</span>
             ) : (
-              <span className="cover" />
+              <span className="cell-cover" />
             )}
           </button>
         ))}
@@ -187,9 +206,8 @@ export default function Game() {
       <div className="status" style={{ marginTop: 12 }}>
         {solved ? (
           <div className="solved">
-            <h2>All pairs matched!</h2>
+            <h3>All pairs matched!</h3>
             <p>Total attempts: {attempts}</p>
-            <button onClick={resetBoard}>Play again</button>
           </div>
         ) : null}
       </div>

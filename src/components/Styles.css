@@ -1,80 +1,67 @@
 :root {
-  --bg: #f6f8fa;
-  --card: #ffffff;
-  --accent: #2b6cb0;
-}
-
-* {
-  box-sizing: border-box;
+  --bg: #f7fafc;
+  --card: #fff;
+  --muted: #667;
 }
 body {
   margin: 0;
-  font-family: Inter, system-ui, Arial, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
   background: var(--bg);
-  color: #111;
 }
-.app {
+.app-root {
   max-width: 900px;
   margin: 28px auto;
-  padding: 18px;
+  padding: 16px;
   text-align: center;
 }
-.game {
-  margin-top: 16px;
+.landing-title {
+  margin: 8px 0 12px;
 }
 
+/* levels container */
 .levels_container {
   display: flex;
   gap: 12px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
 }
-.levels_container input[type="radio"] {
+.level-item input {
   margin-right: 6px;
 }
-.controls {
-  margin-left: 12px;
-  display: inline-flex;
-  gap: 10px;
+
+/* controls */
+.controls-row {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
   align-items: center;
+  justify-content: center;
+}
+.attempts {
+  font-weight: 600;
+  color: var(--muted);
 }
 
+/* grid */
 .cells_container {
-  display: grid;
-  gap: 10px;
-  justify-content: center;
-  margin: 18px auto;
-  width: 100%;
+  margin: 16px auto;
   max-width: 720px;
 }
-
-.cells_container[data-columns="4"] {
-  grid-template-columns: repeat(4, 1fr);
-}
-.cells_container[data-columns="6"] {
-  grid-template-columns: repeat(6, 1fr);
-}
-.cells_container[data-columns="8"] {
-  grid-template-columns: repeat(8, 1fr);
-}
-
 .cell {
   background: var(--card);
   border: 1px solid #e2e8f0;
-  height: 80px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 22px;
   border-radius: 6px;
   cursor: pointer;
-  position: relative;
-  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
 }
-
-.cell .cover {
+.cell:disabled {
+  opacity: 0.9;
+  cursor: default;
+}
+.cell-cover {
   width: 100%;
   height: 100%;
   display: block;
@@ -83,30 +70,14 @@ body {
 }
 .cell.revealed,
 .cell.matched {
-  background: linear-gradient(180deg, #fff, #f7fafc);
-}
-.cell.matched {
-  border-color: #c6f6d5;
-  box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.08);
+  background: linear-gradient(180deg, #fff, #f8fafc);
 }
 
-.status {
-  margin-top: 12px;
-}
+/* solved */
 .solved {
-  background: white;
   display: inline-block;
-  padding: 12px 18px;
+  background: #fff;
+  padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-.attempts {
-  font-weight: 600;
-  color: #333;
-}
-
-@media (min-width: 480px) {
-  .cells_container[data-pair-count="4"] {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  border: 1px solid #e6eef8;
 }
